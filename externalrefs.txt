@@ -1,0 +1,12 @@
+https://github.com/HomeSecExplorer/Proxmox-Hardening-Guide
+https://github.com/MacRimi/ProxMenux
+Website: https://pegaprox.com/
+GitHub: https://github.com/PegaProx/project-pegaprox
+Website: https://patchmon.net/
+Proxmox integration: https://patchmon.net/integrations/proxmox
+GitHub: https://github.com/PatchMon/PatchMon
+https://proxforge.de/links/
+Proxmox VE Documentation: https://pve.proxmox.com/pve-docs/
+Proxmox Wiki: https://pve.proxmox.com/wiki/
+Proxmox Forum: https://forum.proxmox.com/
+

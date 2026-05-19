@@ -1,391 +1,213 @@
+# Proxmox Helper Scripts
 
-````markdown
-# ProxmoxHelpers
+Eine Sammlung von Bash-Skripten zur Vereinfachung häufiger Verwaltungsaufgaben auf Proxmox VE Hosts. Die Skripte bieten eine konsistente, sichere und benutzerfreundliche Schnittstelle für Container- und VM-Verwaltung, System-Updates, Backups, Netzwerk- und Festplattendiagnose sowie Firewall-Übersicht.
 
-A curated collection of helper scripts, tools, notes, and references for managing, maintaining, and automating tasks in a Proxmox VE environment.
+## Voraussetzungen
 
-Repository: https://github.com/surreal70/ProxmoxHelpers
-
-This repository is intended for homelab users, system administrators, and Proxmox enthusiasts who want reusable helpers for common Proxmox workflows.
-
-## Contents
-
-- Maintenance helpers
-- VM and LXC management scripts
-- Backup and restore helpers
-- Storage and disk utilities
-- Network troubleshooting tools
-- Update and cleanup helpers
-- Proxmox notes, hints, and references
-- Links to useful Proxmox-related community projects
-
-## Repository Structure
-
-Suggested structure:
-
-```text
-.
-├── scripts/
-│   ├── vm/
-│   ├── lxc/
-│   ├── backup/
-│   ├── storage/
-│   ├── network/
-│   └── maintenance/
-├── tools/
-├── docs/
-├── examples/
-├── LICENSE
-└── README.md
-````
-
-You can adjust this structure as the collection grows.
-
-## Requirements
-
-Most scripts are intended for:
-
-* Proxmox VE 7.x or 8.x
-* Debian-based systems
-* Bash shell
-* Root or sudo access, depending on the script
-
-Some helpers may require common packages:
-
-```bash
-apt update
-apt install curl wget jq git
-```
+- **Proxmox VE** 7.x oder höher
+- **Root-Zugriff** auf den Proxmox-Host
+- Standard-Linux-Tools (`lsblk`, `smartctl`, `ip`, `bridge`)
+- Proxmox-CLI-Tools (`pct`, `qm`, `pvesh`, `pvesm`)
 
 ## Installation
 
-Clone the repository:
+```bash
+# Repository klonen
+git clone <repository-url> /opt/proxmox-helper-scripts
+cd /opt/proxmox-helper-scripts
+
+# Skripte ausführbar machen
+chmod +x scripts/*.sh
+```
+
+## Verfügbare Skripte
+
+| Skript | Beschreibung |
+|--------|-------------|
+| `list-lxcs.sh` | Alle LXC-Container mit CTID, Hostname, Status und Ressourcen auflisten |
+| `list-vms.sh` | Alle VMs mit VMID, Name, Status, CPU und RAM auflisten |
+| `restart-lxc.sh` | LXC-Container sicher neustarten (Graceful Stop + Start) |
+| `restart-vm.sh` | VM sicher neustarten (Graceful Stop + Start) |
+| `snapshot-vm.sh` | VM-Snapshot mit Zeitstempel vor Wartungsarbeiten erstellen |
+| `update-proxmox.sh` | Proxmox VE System-Update mit Bestätigung durchführen |
+| `cleanup-node.sh` | Node bereinigen: APT-Cache, ungenutzte Pakete, temporäre Dateien |
+| `backup-configs.sh` | Proxmox-Konfigurationsdateien (/etc/pve/, /etc/network/) sichern |
+| `check-disks.sh` | Festplatten, SMART-Status und Storage-Pools anzeigen |
+| `net-info.sh` | Bridges, Interfaces, Routen und DNS-Konfiguration anzeigen |
+| `show-firewall.sh` | Firewall-Status und Regeln (Datacenter + Host) anzeigen |
+
+## Nutzungsbeispiele
+
+### Container & VM auflisten
 
 ```bash
-git clone https://github.com/surreal70/ProxmoxHelpers.git
-cd ProxmoxHelpers
+# Alle LXC-Container anzeigen
+./scripts/list-lxcs.sh
+
+# Alle VMs anzeigen
+./scripts/list-vms.sh
 ```
 
-Make shell scripts executable:
+### LXC-Container neustarten
 
 ```bash
-find scripts -type f -name "*.sh" -exec chmod +x {} \;
+# Argument-Mode: CTID direkt angeben
+./scripts/restart-lxc.sh 100
+
+# Interactive Mode: Auswahl aus laufenden Containern
+./scripts/restart-lxc.sh
 ```
 
-## Usage
-
-Run a script directly:
+### VM neustarten
 
 ```bash
-./scripts/maintenance/update-proxmox.sh
+# Argument-Mode: VMID direkt angeben
+./scripts/restart-vm.sh 200
+
+# Interactive Mode: Auswahl aus laufenden VMs
+./scripts/restart-vm.sh
 ```
 
-Or run it with Bash:
+### VM-Snapshot erstellen
 
 ```bash
-bash scripts/maintenance/update-proxmox.sh
+# Argument-Mode: VMID direkt angeben
+./scripts/snapshot-vm.sh 200
+
+# Interactive Mode: VM aus Liste auswählen
+./scripts/snapshot-vm.sh
 ```
 
-Some scripts may require root privileges:
+Snapshot-Name wird automatisch generiert: `pre-maintenance-YYYYMMDD-HHMMSS`
+
+### System-Update
 
 ```bash
-sudo ./scripts/storage/check-disks.sh
+# Paketlisten aktualisieren und Upgrades installieren (mit Bestätigung)
+./scripts/update-proxmox.sh
 ```
 
-## Example Scripts
-
-| Script              | Description                                             |
-| ------------------- | ------------------------------------------------------- |
-| `update-proxmox.sh` | Updates Proxmox VE and installed packages               |
-| `cleanup-node.sh`   | Cleans package cache, temporary files, and unused data  |
-| `list-vms.sh`       | Lists virtual machines with useful details              |
-| `list-lxcs.sh`      | Lists LXC containers with useful details                |
-| `backup-configs.sh` | Backs up important Proxmox configuration files          |
-| `check-disks.sh`    | Displays disk, SMART, and storage information           |
-| `network-info.sh`   | Shows bridges, interfaces, routes, and IP configuration |
-| `snapshot-vm.sh`    | Creates a VM snapshot before maintenance                |
-| `restart-vm.sh`     | Safely restarts a selected VM                           |
-| `restart-lxc.sh`    | Safely restarts a selected LXC container                |
-
-## Safety Notice
-
-These scripts may modify system packages, VM settings, LXC containers, storage, networking, or Proxmox configuration.
-
-Before running any script:
-
-1. Read the script first.
-2. Make sure you understand what it does.
-3. Back up important data.
-4. Test in a non-production environment if possible.
-5. Avoid running unknown commands blindly as root.
-
-Use these helpers at your own risk.
-
-## Recommended Backup Targets
-
-Important Proxmox configuration paths to consider backing up:
-
-```text
-/etc/pve
-/etc/network/interfaces
-/etc/hosts
-/etc/hostname
-/etc/resolv.conf
-/etc/apt/sources.list
-/etc/apt/sources.list.d/
-```
-
-Example backup command:
+### Node bereinigen
 
 ```bash
-tar -czvf proxmox-config-backup.tar.gz \
-  /etc/pve \
-  /etc/network/interfaces \
-  /etc/hosts \
-  /etc/hostname \
-  /etc/resolv.conf \
-  /etc/apt/sources.list \
-  /etc/apt/sources.list.d/
+# APT-Cache, ungenutzte Pakete und temporäre Dateien bereinigen
+./scripts/cleanup-node.sh
 ```
 
-## Useful Proxmox Commands
-
-### Show Proxmox version
+### Konfiguration sichern
 
 ```bash
-pveversion -v
+# Backup in Standard-Verzeichnis (/root/pve-backups)
+./scripts/backup-configs.sh
+
+# Backup in benutzerdefiniertes Verzeichnis
+./scripts/backup-configs.sh /mnt/backup/proxmox
 ```
 
-### Update package lists
+### Festplatten prüfen
 
 ```bash
-apt update
+# Block-Devices, SMART-Status und Storage-Pools anzeigen
+./scripts/check-disks.sh
 ```
 
-### Upgrade packages
+### Netzwerk-Informationen
 
 ```bash
-apt dist-upgrade
+# Bridges, Interfaces, Routen und DNS anzeigen
+./scripts/net-info.sh
 ```
 
-### List VMs
+### Firewall-Regeln anzeigen
 
 ```bash
-qm list
+# Firewall-Status, Datacenter- und Host-Regeln anzeigen
+./scripts/show-firewall.sh
 ```
 
-### List LXC containers
+## Berechtigungen und Sicherheit
+
+- Alle Skripte erfordern **Root-Berechtigung** und prüfen dies beim Start
+- Destruktive Aktionen (Update, Cleanup) erfordern eine **explizite Bestätigung**
+- Fehlerbehandlung mit `set -euo pipefail` verhindert stille Fehler
+- Graceful Stop wird für Container/VM-Neustarts verwendet (kein hartes Kill)
+- Backup-Skripte erstellen datierte Archive zur Versionierung
+
+## Projektstruktur
+
+```
+proxmox-helper-scripts/
+├── README.md
+├── externalrefs.txt
+├── docs/
+│   └── proxmox-cheatsheet.md    # CLI Cheat-Sheet
+├── lib/
+│   └── common.sh                # Gemeinsame Bibliothek
+└── scripts/
+    ├── backup-configs.sh
+    ├── check-disks.sh
+    ├── cleanup-node.sh
+    ├── list-lxcs.sh
+    ├── list-vms.sh
+    ├── net-info.sh
+    ├── restart-lxc.sh
+    ├── restart-vm.sh
+    ├── show-firewall.sh
+    ├── snapshot-vm.sh
+    └── update-proxmox.sh
+```
+
+## Proxmox CLI Cheat-Sheet
+
+Ein umfassendes Nachschlagewerk für häufig verwendete Proxmox-CLI-Befehle ist verfügbar unter:
+
+➡️ [docs/proxmox-cheatsheet.md](docs/proxmox-cheatsheet.md)
+
+## Externe Referenzen / Nützliche Links
+
+### Offizielle Proxmox-Ressourcen
+
+- [Proxmox VE Documentation](https://pve.proxmox.com/pve-docs/) — Offizielle Proxmox VE Dokumentation
+- [Proxmox Wiki](https://pve.proxmox.com/wiki/) — Community-Wiki mit Anleitungen und Tipps
+- [Proxmox Forum](https://forum.proxmox.com/) — Offizielles Support-Forum
+
+### Community-Projekte
+
+- [Proxmox Hardening Guide](https://github.com/HomeSecExplorer/Proxmox-Hardening-Guide) — Sicherheitshärtung für Proxmox VE
+- [ProxMenux](https://github.com/MacRimi/ProxMenux) — Menübasiertes Verwaltungstool für Proxmox
+- [ProxForge Links](https://proxforge.de/links/) — Kuratierte Linksammlung rund um Proxmox
+
+### Monitoring & Management
+
+- [PegaProx](https://pegaprox.com/) — Proxmox Management-Lösung ([GitHub](https://github.com/PegaProx/project-pegaprox))
+- [PatchMon](https://patchmon.net/) — Patch-Monitoring mit [Proxmox-Integration](https://patchmon.net/integrations/proxmox) ([GitHub](https://github.com/PatchMon/PatchMon))
+
+## Tests
+
+Die Tests verwenden [bats-core](https://github.com/bats-core/bats-core) (Bash Automated Testing System).
+
+### Installation
 
 ```bash
-pct list
+# bats-core installieren (Debian/Ubuntu)
+apt install bats
+
+# Oder via Git
+git clone https://github.com/bats-core/bats-core.git
+cd bats-core
+./install.sh /usr/local
 ```
 
-### Show storage status
+### Tests ausführen
 
 ```bash
-pvesm status
+# Alle Tests ausführen
+bats tests/
+
+# Einzelne Testdatei ausführen
+bats tests/test_script_structure.bats
 ```
 
-### Show cluster status
+## Lizenz
 
-```bash
-pvecm status
-```
-
-### Show node subscription status
-
-```bash
-pvesubscription get
-```
-
-### View recent system logs
-
-```bash
-journalctl -xe
-```
-
-### View Proxmox task logs
-
-```bash
-ls -lah /var/log/pve/tasks/
-```
-
-## Helpful Hints
-
-### Create a backup before changing things
-
-Before running cleanup, update, storage, network, VM, or LXC scripts, create a backup or snapshot where possible.
-
-For VMs:
-
-```bash
-qm snapshot <vmid> before-maintenance
-```
-
-For LXC containers:
-
-```bash
-pct snapshot <ctid> before-maintenance
-```
-
-### Check VM and LXC IDs first
-
-Always confirm the correct ID before running commands:
-
-```bash
-qm list
-pct list
-```
-
-### Be careful with network changes
-
-Network changes can disconnect your Proxmox host, especially when working over SSH.
-
-Before editing network configuration, consider backing it up:
-
-```bash
-cp /etc/network/interfaces /etc/network/interfaces.backup
-```
-
-### Keep a local console option available
-
-When changing bridges, bonds, VLANs, firewall rules, or storage configuration, make sure you have local console, IPMI, iLO, iDRAC, PiKVM, or another recovery method available.
-
-### Review external install scripts
-
-When using commands from third-party projects, avoid blindly running remote scripts. Download and inspect them first when possible:
-
-```bash
-curl -fsSL https://example.com/script.sh -o script.sh
-less script.sh
-bash script.sh
-```
-
-### Prefer idempotent scripts
-
-Good helper scripts should be safe to run more than once. Where possible, scripts should:
-
-* Check current state before changing anything
-* Ask before destructive actions
-* Print what they are going to do
-* Exit on errors
-* Create backups before editing files
-
-## Script Style Guidelines
-
-When adding scripts to this repository:
-
-* Use clear and descriptive names.
-* Add comments for important steps.
-* Avoid hardcoded host-specific values.
-* Prompt before destructive operations.
-* Include basic error handling.
-* Use readable output.
-* Prefer Bash-compatible syntax.
-* Document required packages.
-* Include examples where helpful.
-
-Recommended script header:
-
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-# Script: example-script.sh
-# Description: Short description of what this script does.
-# Usage: ./example-script.sh
-```
-
-## Related Projects & References
-
-The Proxmox ecosystem has many useful community projects and resources. These are worth checking out for ideas, workflows, and additional tooling.
-
-### ProxMenux
-
-ProxMenux is an interactive menu-based management tool for Proxmox VE.
-
-* GitHub: [https://github.com/MacRimi/ProxMenux](https://github.com/MacRimi/ProxMenux)
-
-Useful for users who prefer guided menu workflows for common Proxmox administration tasks.
-
-### PegaProx
-
-PegaProx is a web-based management platform focused on Proxmox VE and XCP-ng environments.
-
-* Website: [https://pegaprox.com/](https://pegaprox.com/)
-* GitHub: [https://github.com/PegaProx/project-pegaprox](https://github.com/PegaProx/project-pegaprox)
-
-Useful for exploring multi-cluster management, monitoring, automation, and centralized control ideas.
-
-### PatchMon
-
-PatchMon focuses on Linux patch management and includes Proxmox/LXC-related integration options.
-
-* Website: [https://patchmon.net/](https://patchmon.net/)
-* Proxmox integration: [https://patchmon.net/integrations/proxmox](https://patchmon.net/integrations/proxmox)
-* GitHub: [https://github.com/PatchMon/PatchMon](https://github.com/PatchMon/PatchMon)
-
-Useful for patch visibility, update workflows, and monitoring Linux hosts or containers.
-
-### ProxForge Links
-
-ProxForge maintains a curated Proxmox VE link collection with tools, resources, and knowledge sources.
-
-* Links: [https://proxforge.de/links/](https://proxforge.de/links/)
-
-Useful as a broader reference list for Proxmox-related backup, storage, clustering, automation, and homelab topics.
-
-## Additional Useful Resources
-
-### Official Proxmox Documentation
-
-* Proxmox VE Documentation: [https://pve.proxmox.com/pve-docs/](https://pve.proxmox.com/pve-docs/)
-* Proxmox Wiki: [https://pve.proxmox.com/wiki/](https://pve.proxmox.com/wiki/)
-* Proxmox Forum: [https://forum.proxmox.com/](https://forum.proxmox.com/)
-
-### Community Script Collections
-
-* Proxmox VE Helper-Scripts: [https://community-scripts.org/](https://community-scripts.org/)
-
-Community scripts can be very useful, but always review commands before running them on a production system.
-
-## Contributing
-
-Contributions are welcome.
-
-To contribute:
-
-1. Fork the repository.
-2. Create a new branch.
-3. Add or improve a script.
-4. Test your changes.
-5. Update documentation if needed.
-6. Open a pull request.
-
-Please include:
-
-* What the script does
-* Any required packages
-* Example usage
-* Whether root access is required
-* Any known risks or limitations
-
-## Disclaimer
-
-This project is not affiliated with or endorsed by Proxmox Server Solutions GmbH.
-
-Proxmox and Proxmox VE are trademarks of Proxmox Server Solutions GmbH.
-
-All scripts and notes are provided as-is, without warranty. Review and test everything before use.
-
-## License
-
-This project is licensed under the MIT License.
-
-See the `LICENSE` file for details.
-
-```
-::contentReference[oaicite:1]{index=1}
-```
-
-[1]: https://github.com/MacRimi/ProxMenux?utm_source=chatgpt.com "GitHub - MacRimi/ProxMenux: ProxMenux An Interactive Menu for Proxmox ..."
+Dieses Projekt steht unter der MIT-Lizenz.
