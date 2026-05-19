@@ -1,6 +1,3 @@
-I verified the referenced projects/links: ProxMenux is a Proxmox VE interactive menu tool, PegaProx is a Proxmox VE/XCP-ng management platform, PatchMon includes Proxmox/LXC patch-management support, and ProxForge has a curated Proxmox VE link collection. ([GitHub][1])
-
-Copy this into `README.md`:
 
 ````markdown
 # ProxmoxHelpers
