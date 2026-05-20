@@ -35,6 +35,7 @@ chmod +x scripts/*.sh
 | `check-disks.sh` | Festplatten, SMART-Status und Storage-Pools anzeigen |
 | `net-info.sh` | Bridges, Interfaces, Routen und DNS-Konfiguration anzeigen |
 | `show-firewall.sh` | Firewall-Status und Regeln (Datacenter + Host) anzeigen |
+| `make-ubuntu-clone-unique.sh` | Geklonte Ubuntu-Maschine einzigartig machen (Hostname, Machine-ID, SSH-Keys) |
 
 ## Nutzungsbeispiele
 
@@ -125,6 +126,15 @@ Snapshot-Name wird automatisch generiert: `pre-maintenance-YYYYMMDD-HHMMSS`
 ./scripts/show-firewall.sh
 ```
 
+### Geklonte Ubuntu-Maschine einzigartig machen
+
+```bash
+# Hostname, Machine-ID, SSH-Keys, DHCP-Leases und Logs zurücksetzen
+./scripts/make-ubuntu-clone-unique.sh neuer-hostname
+```
+
+Führt 8 Schritte aus: Hostname setzen, Machine-ID regenerieren, SSH-Keys neu generieren, Cloud-Init zurücksetzen, DHCP-Leases entfernen, temporäre Dateien und Logs bereinigen, Shell-History löschen. Neustart danach empfohlen.
+
 ## Berechtigungen und Sicherheit
 
 - Alle Skripte erfordern **Root-Berechtigung** und prüfen dies beim Start
@@ -149,6 +159,7 @@ proxmox-helper-scripts/
     ├── cleanup-node.sh
     ├── list-lxcs.sh
     ├── list-vms.sh
+    ├── make-ubuntu-clone-unique.sh
     ├── net-info.sh
     ├── restart-lxc.sh
     ├── restart-vm.sh
